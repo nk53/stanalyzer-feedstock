@@ -1,79 +1,119 @@
-{% set hsep = '-' if suffix else '' %}
+{%- set base = "stanalyzer" -%}
+{%- set short = "sta" -%}
+{%- set tag = "1.0-beta" -%}
+{%- set version = tag|replace('-', '_') -%}
+
 
 package:
-  name: stanalyzer{{ hsep }}{{ suffix }}
-  version: "0.1.0"
+  name: {{ base }}-metapkg
+  version: {{ version }}
 
 source:
-  git_url: https://github.com/nk53/stanalyzer.git
-  git_rev: sta
+  url: https://github.com/nk53/stanalyzer/archive/refs/tags/v{{ tag }}.tar.gz
+  sha256: 2fe87a350cccdc551993daa5e655e07ecebffba66d3216bf683c5868d918df92
 
 build:
-  number: 1
+  number: 0
   noarch: python
-  skip: True  # [win]
-{% if suffix %}
-  script_env:
-    - STA_SUFFIX={{ suffix }}
-{% endif %}
-  entry_points:
-    - stanalyzer = stanalyzer.cli.stanalyzer:main
-{% if suffix != 'client' %}
-    - sta-server = stanalyzer.cli.stanalyzer:run_server
-{% endif %}
-{% if suffix == 'dev' %}
-    - sta-finish-install = stanalyzer:finish_install
-{% endif %}
+
+requirements:
+  host:
+    - python ={{ python_min }}
+    - setuptools >=64
+    - setuptools_scm >=8
+    - pip
+
+outputs:
+  # standard installation
+  - name: {{ base }}
+    script: build_base.sh
+    requirements:
+      build:
+        - python ={{ python_min }}
+        - setuptools >=64
+        - setuptools_scm >=8
+        - pip
+      run:
+        - python >={{ python_min }}
+        - mdanalysis =2.7
+        - paramiko =3.5
+        - fabric =3.2
+        - invoke =2.2
+        - pyyaml =6.0
+        - fastapi =0.115
+        - uvicorn =0.32
+        - jinja2 =3.1
+        - sqlmodel >=0.0.22
+        - email-validator =2.2
+        - python-multipart >=0.0.17
+      run_constrained:
+        - hole2 =2.3
+        - freesasa =2.2
+        - dssp
+    entry_points:
+      - {{ base }} = {{ base }}.cli.{{ base }}:main
+      - {{ short }}-server = {{ base }}.cli.{{ base }}:run_server
+    test:
+      imports:
+        - {{ base }}
+        - {{ base }}.cli.{{ base }}
+      commands:
+        - {{ base }} -h
+        - {{ base }} system_size -h
+
+  # development installation
+  - name: {{ base }}-dev
+    script: build_base.sh
+    requirements:
+      build:
+        - python ={{ python_min }}
+        - setuptools >=64
+        - setuptools_scm >=8
+        - pip
+      run:
+        - python >={{ python_min }}
+        - mdanalysis =2.7
+        - paramiko =3.5
+        - fabric =3.2
+        - invoke =2.2
+        - pyyaml =6.0
+        - pylsp-mypy =0.6
+        - sphinx =8.1
+        - sphinx-js =3.2
+        - fastapi =0.115
+        - uvicorn =0.32
+        - jinja2 =3.1
+        - sqlmodel >=0.0.22
+        - email-validator =2.2
+        - python-multipart >=0.0.17
+      run_constrained:
+        - hole2 =2.3
+        - freesasa =2.2
+        - dssp
+    entry_points:
+      - {{ base }} = {{ base }}.cli.{{ base }}:main
+      - {{ short }}-server = {{ base }}.cli.{{ base }}:run_server
+      - {{ short }}-finish-install = {{ base }}:finish_install
+    test:
+      imports:
+        - {{ base }}
+
+# TODO: add client-only build?
+
 
 about:
-  home: https://github.com/nk53/stanalyzer
+  home: https://github.com/nk53/{{ base }}
   license: MIT
   license_file: LICENSE
-  license_url: https://github.com/nk53/stanalyzer/blob/sta/LICENSE
+  license_url: https://github.com/nk53/{{ base }}/blob/{{ short }}/LICENSE
   summary: Command-line and web interface for common simulation trajectory analysis
   description: |
     An extensible framework for analyzing molecular dynamics simulation trajectories. Several analysis programs are provided, and sophisticated users can add their own analysis types.
-  dev_url: https://github.com/nk53/stanalyzer
-  doc_url: https://github.com/nk53/stanalyzer/blob/sta/README.md
-  doc_source_url: https://github.com/nk53/stanalyzer/blob/sta/README.md
+  dev_url: https://github.com/nk53/{{ base }}
+  doc_url: https://github.com/nk53/{{ base }}/blob/{{ short }}/README.md
+  doc_source_url: https://github.com/nk53/{{ base }}/blob/{{ short }}/README.md
 
-{% if suffix != 'dev' %}
-test:
-  imports:
-    - stanalyzer
-    - stanalyzer.cli.stanalyzer
-  commands:
-    - stanalyzer -h
-    - stanalyzer system_size -h
-{% endif %}
-
-requirements:
-  build:
-    - python=3.10
-    - setuptools>=64
-    - setuptools_scm>=8
-    - pip
-  run:
-    - python=3.10
-    - mdanalysis=2.7
-    - paramiko=3.5
-    - fabric=3.2
-    - invoke=2.2
-    - pyyaml=6.0
-{% if suffix != 'client' %}
-    - fastapi=0.115
-    - uvicorn=0.32
-    - jinja2=3.1
-    - sqlmodel>=0.0.22
-    - email-validator=2.2
-    - python-multipart>=0.0.17
-{% endif %}
-{% if suffix == 'dev' %}
-    - pylsp-mypy=0.6
-    - sphinx=8.1
-    - sphinx-js=3.2
-{% endif %}
-  run_constrained:
-    - hole2=2.3
-    - freesasa=2.2
-    - dssp
+extra:
+  recipe-maintainers:
+    - nk53
+  feedstock-name: stanalyzer
