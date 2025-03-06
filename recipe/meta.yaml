@@ -1,6 +1,6 @@
 {%- set base = "stanalyzer" -%}
 {%- set short = "sta" -%}
-{%- set tag = "1.0-beta" -%}
+{%- set tag = "1.0.0dev1" -%}
 {%- set version = tag|replace('-', '_') -%}
 
 
@@ -10,7 +10,7 @@ package:
 
 source:
   url: https://github.com/nk53/stanalyzer/archive/refs/tags/v{{ tag }}.tar.gz
-  sha256: 2fe87a350cccdc551993daa5e655e07ecebffba66d3216bf683c5868d918df92
+  sha256: cff3a28af7defe0c335cf7ddee68fee7244dc918a63dd32985330fe655d09f25
 
 build:
   number: 0
@@ -24,7 +24,6 @@ requirements:
     - pip
 
 outputs:
-  # standard installation
   - name: {{ base }}
     script: build_base.sh
     requirements:
@@ -60,8 +59,6 @@ outputs:
       commands:
         - {{ base }} -h
         - {{ base }} system_size -h
-
-  # development installation
   - name: {{ base }}-dev
     script: build_base.sh
     requirements:
@@ -97,9 +94,6 @@ outputs:
     test:
       imports:
         - {{ base }}
-
-# TODO: add client-only build?
-
 
 about:
   home: https://github.com/nk53/{{ base }}
